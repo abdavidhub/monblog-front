@@ -1,102 +1,88 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://serene-taiga-33855-7e5b7eb08215.herokuapp.com";
 
-export default function CreerArticle() {
-  const [titre, setTitre] = useState("");
-  const [contenu, setContenu] = useState("");
-  const [image, setImage] = useState("")
-  const [erreur, setErreur] = useState("");
-  const [envoiEnCours, setEnvoiEnCours] = useState(false);
-
+export default function ArticleDetail() {
+  const { id } = useParams();
   const router = useRouter();
+  const [article, setArticle] = useState(null);
+  const [chargement, setChargement] = useState(true);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  useEffect(() => {
+    fetch(`${API_URL}/api/articles/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Article introuvable");
+        return res.json();
+      })
+      .then((data) => {
+        setArticle(data);
+        setChargement(false);
+      })
+      .catch(() => setChargement(false));
+  }, [id]);
 
-    if (!titre.trim() || !contenu.trim()) {
-      setErreur("Le titre et le contenu sont obligatoires.");
-      return;
-    }
+  async function handleDelete() {
+    const confirme = window.confirm("Supprimer cet article définitivement ?");
+    if (!confirme) return;
 
-    setEnvoiEnCours(true);
-    setErreur("");
-
+    setSuppressionEnCours(true);
     try {
-      const res = await fetch(`${API_URL}/api/articles`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titre, contenu, image: image }),
-      });
-
-      if (!res.ok) throw new Error("Erreur lors de la création");
-
+      await fetch(`${API_URL}/api/articles/${id}`, { method: "DELETE" });
       router.push("/");
     } catch (err) {
-      setErreur("Impossible de créer l'article.");
-    } finally {
-      setEnvoiEnCours(false);
+      alert("Erreur lors de la suppression.");
+      setSuppressionEnCours(false);
     }
   }
 
+  if (chargement) return <p className="py-16 text-neutral-400">Chargement...</p>;
+  if (!article) return <p className="py-16 text-neutral-400">Article introuvable.</p>;
+
   return (
-    <div className="py-16">
-      <button
-        onClick={() => router.push("/")}
-        className="text-sm text-neutral-500 mb-10 hover:text-black transition"
-      >
-        ← Tous les articles
-      </button>
-
-      <h1 className="text-4xl font-bold tracking-tight mb-10">Nouvel article</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <input
-          type="text"
-          placeholder="Titre"
-          value={titre}
-          onChange={(e) => setTitre(e.target.value)}
-          className="text-2xl font-semibold border-b border-neutral-200 pb-3 focus:outline-none focus:border-black transition"
-        />
-
-        <input
-          type="url"
-          placeholder="URL de l'image de couverture (optionnel)"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          className="text-sm border border-neutral-200 rounded-lg p-3 focus:outline-none focus:border-black transition"
-        />
-
-        {image && (
-          <img
-            src={image}
-            alt="Aperçu"
-            className="w-full h-56 object-cover rounded-lg border border-neutral-200"
-            onError={(e) => (e.target.style.display = "none")}
-          />
-        )}
-
-        <textarea
-          placeholder="Écris ton article ici.."
-          value={contenu}
-          onChange={(e) => setContenu(e.target.value)}
-          rows={8}
-          className="text-lg leading-relaxed border border-neutral-200 rounded-lg p-4 focus:outline-none focus:border-black transition"
-        />
-
-        {erreur && <p className="text-red-600">{erreur}</p>}
+    <article className="py-16">
+      <div className="flex justify-between items-center mb-10">
+        <button
+          onClick={() => router.push("/")}
+          className="text-sm text-neutral-500 hover:text-black transition"
+        >
+          ← Tous les articles
+        </button>
 
         <button
-          type="submit"
-          disabled={envoiEnCours}
-          className="self-start bg-black text-white text-sm px-6 py-3 rounded-full disabled:opacity-50 hover:bg-neutral-800 transition"
+          onClick={handleDelete}
+          disabled={suppressionEnCours}
+          className="text-sm text-red-600 hover:text-red-800 transition disabled:opacity-50"
         >
-          {envoiEnCours ? "Envoi..." : "Publier"}
+          {suppressionEnCours ? "Suppression..." : "Supprimer"}
         </button>
-      </form>
-    </div>
+      </div>
+
+      <h1 className="text-4xl font-bold tracking-tight mb-3">{article.titre}</h1>
+      <p className="text-neutral-400 mb-10">
+        {new Date(article.date_creation).toLocaleDateString("fr-CA", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </p>
+
+      {article.image_url && (
+        <img
+          src={article.image_url}
+          alt={article.titre}
+          className="w-full h-80 object-cover rounded-xl mb-10"
+        />
+      )}
+
+      <div className="prose prose-neutral max-w-none">
+        <p className="whitespace-pre-line leading-relaxed text-lg text-neutral-800">
+          {article.contenu}
+        </p>
+      </div>
+    </article>
   );
 }
