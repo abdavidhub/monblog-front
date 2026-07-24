@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://serene-taiga-33855-7e5b7eb08215.herokuapp.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function ArticleDetail() {
   const { id } = useParams();
@@ -71,6 +71,7 @@ export default function ArticleDetail() {
       </p>
 
       {article.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={article.image_url}
           alt={article.titre}
