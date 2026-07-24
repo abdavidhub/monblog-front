@@ -70,10 +70,9 @@ export default function ArticleDetail() {
         })}
       </p>
 
-      {article.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
+      {(article.image_url || article.image) && (
         <img
-          src={article.image_url}
+          src={article.image_url || article.image}
           alt={article.titre}
           className="w-full h-80 object-cover rounded-xl mb-10"
         />

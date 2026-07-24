@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const API_URL = process.env.Next_PUBLIC_API_URL || "https://serene-taiga-33855-7e5b7eb08215.herokuapp.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://serene-taiga-33855-7e5b7eb08215.herokuapp.com";
 
 export default function HomePage() {
   const [articles, setArticles] = useState([]);
@@ -50,8 +50,8 @@ export default function HomePage() {
       <div className="flex flex-col divide-y divide-neutral-200">
         {articles.map((article) => (
           <Link
-            key={article.id}
-            href={`/articles/${article.id}`}
+            key={article.id || article._id}
+            href={`/articles/${article.id || article._id}`}
             className="group py-8 flex gap-6">
             {article.image && (
               <img
