@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const API_URL = process.env.Next_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.Next_PUBLIC_API_URL || "https://serene-taiga-33855-7e5b7eb08215.herokuapp.com";
 
 export default function HomePage() {
   const [articles, setArticles] = useState([]);
